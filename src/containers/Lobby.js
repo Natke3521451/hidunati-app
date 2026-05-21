@@ -1,248 +1,167 @@
 import React, { useState } from 'react';
-import { Container, Form } from 'react-bootstrap';
 import { useLocation, useHistory } from 'react-router-dom';
 import { get } from 'lodash';
 import { joinRoom, getRoom, createRoom } from '../lib/endpoints';
 import Header from '../components/Header';
-import Footer, { FooterSimple } from '../components/Footer';
+import Footer from '../components/Footer';
 
-const ERROR_TYPE = {
-  emptyCode: 'emptyCode',
-  roomCode: 'roomCode',
-  name: 'name',
-  hostRoom: 'hostRoom',
-  fullRoom: 'fullRoom',
-  dupName: 'dupName',
-};
-
-const ERROR_MESSAGE = {
-  [ERROR_TYPE.emptyCode]: 'Please enter a room code',
-  [ERROR_TYPE.roomCode]: 'Unable to join room with this code',
-  [ERROR_TYPE.name]: 'Please enter your player name',
-  [ERROR_TYPE.dupName]: 'Player name already taken',
-  [ERROR_TYPE.hostRoom]: 'Unable to create room, please try again',
-  [ERROR_TYPE.fullRoom]: 'Room has reached capacity',
+const ERR = {
+  emptyCode: 'אנא הכנס קוד חדר',
+  roomCode: 'לא ניתן להצטרף לחדר עם קוד זה',
+  name: 'אנא הכנס שם קבוצה',
+  dupName: 'שם הקבוצה כבר קיים',
+  hostRoom: 'לא ניתן ליצור חדר, נסה שוב',
+  fullRoom: 'החדר מלא',
 };
 
 export default function Lobby({ setAuth }) {
   const location = useLocation();
-  const prefilledRoomID = get(location, 'state.roomID');
-
   const history = useHistory();
+  const prefilledRoomID = get(location, 'state.roomID', '');
+
   const [name, setName] = useState('');
-  const [room, setRoom] = useState(prefilledRoomID || '');
+  const [room, setRoom] = useState(prefilledRoomID);
   const [joinMode, setJoinMode] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // enter room: find room, then join it
   async function enterRoom(roomId, hosting = false) {
-    if (!hosting) {
-      setLoading(true);
-    }
-
+    if (!hosting) setLoading(true);
     try {
-      // get room
       const roomRes = await getRoom(roomId);
-      if (roomRes.status !== 200) {
-        throw new Error(ERROR_TYPE.roomCode);
-      }
-      const room = roomRes.data;
+      if (roomRes.status !== 200) throw new Error('roomCode');
+      const roomData = roomRes.data;
 
-      // determine seat to take
-      const playerSeat = room.players.find((player) => player.name === name);
-      const freeSeat = room.players.find((player) => !player.name);
+      const playerSeat = roomData.players.find((p) => p.name === name);
+      const freeSeat = roomData.players.find((p) => !p.name);
 
-      if (playerSeat && playerSeat.connected) {
-        throw new Error(ERROR_TYPE.dupName);
-      }
-      if (!playerSeat && !freeSeat) {
-        throw new Error(ERROR_TYPE.fullRoom);
-      }
+      if (playerSeat && playerSeat.connected) throw new Error('dupName');
+      if (!playerSeat && !freeSeat) throw new Error('fullRoom');
+
       const playerID = get(playerSeat, 'id', get(freeSeat, 'id'));
-      const joinRes = await joinRoom(room.roomID, playerID, name);
-      if (joinRes.status !== 200) {
-        throw new Error(ERROR_TYPE.roomCode);
-      }
-      const creds = joinRes.data;
-      const auth = {
-        playerID,
-        credentials: creds.playerCredentials,
-        roomID: room.roomID,
-      };
+      const joinRes = await joinRoom(roomData.roomID, playerID, name);
+      if (joinRes.status !== 200) throw new Error('roomCode');
 
-      // save auth and go to room
-      setAuth(auth);
+      setAuth({
+        playerID,
+        credentials: joinRes.data.playerCredentials,
+        roomID: roomData.roomID,
+      });
       setLoading(false);
-      history.push(`/${room.roomID}`);
-    } catch (error) {
+      history.push(`/${roomData.roomID}`);
+    } catch (err) {
       setLoading(false);
-      setError(ERROR_MESSAGE[error.message]);
+      setError(ERR[err.message] || ERR.roomCode);
     }
   }
 
-  // make room: create room, then join it
   async function makeRoom() {
     setLoading(true);
     try {
       const createRes = await createRoom();
-      if (createRes.status !== 200) {
-        throw new Error(ERROR_TYPE.hostRoom);
-      }
-      const roomID = createRes.data.gameID;
-      await enterRoom(roomID, true);
-    } catch (error) {
+      if (createRes.status !== 200) throw new Error('hostRoom');
+      await enterRoom(createRes.data.gameID, true);
+    } catch (err) {
       setLoading(false);
-      setError(ERROR_MESSAGE[error.message]);
+      setError(ERR[err.message] || ERR.hostRoom);
     }
   }
 
-  function handleSubmit(event) {
-    event.preventDefault();
-
-    // validate room and/or player name has been filled
+  function handleSubmit(e) {
+    e.preventDefault();
     if (joinMode) {
-      if (room.trim().length === 0) {
-        setError(ERROR_MESSAGE[ERROR_TYPE.emptyCode]);
-      } else if (name.trim().length === 0) {
-        setError(ERROR_MESSAGE[ERROR_TYPE.name]);
-      } else if (room.trim().length !== 6) {
-        setError(ERROR_MESSAGE[ERROR_TYPE.roomCode]);
-      } else {
-        enterRoom(room);
-      }
+      if (!room.trim()) return setError(ERR.emptyCode);
+      if (!name.trim()) return setError(ERR.name);
+      if (room.trim().length !== 6) return setError(ERR.roomCode);
+      enterRoom(room.trim());
     } else {
-      if (name.trim().length === 0) {
-        setError(ERROR_MESSAGE[ERROR_TYPE.name]);
-      } else {
-        makeRoom();
-      }
+      if (!name.trim()) return setError(ERR.name);
+      makeRoom();
     }
   }
-
-  const form = joinMode ? (
-    <Form className="lobby-form" onSubmit={(e) => handleSubmit(e)}>
-      <h3>Join a game</h3>
-      <Form.Group controlId="room">
-        <Form.Label>Room code</Form.Label>
-        <Form.Control
-          value={room}
-          autoComplete="off"
-          autoCorrect="off"
-          autoCapitalize="characters"
-          spellCheck="false"
-          onChange={(e) => {
-            setError('');
-            setRoom(e.target.value);
-          }}
-        />
-      </Form.Group>
-
-      <Form.Group controlId="name">
-        <Form.Label>Your name</Form.Label>
-        <Form.Control
-          value={name}
-          onChange={(e) => {
-            setError('');
-            setName(e.target.value);
-          }}
-        />
-      </Form.Group>
-
-      <div className="error-message">{error}</div>
-      <button type="submit" disabled={loading}>
-        {loading ? 'Joining...' : 'Join'}
-      </button>
-      <div className="switcher">
-        Hosting a game?{' '}
-        <button
-          className="inline"
-          onClick={() => {
-            setError('');
-            setJoinMode(false);
-          }}
-        >
-          Create room
-        </button>
-      </div>
-    </Form>
-  ) : (
-    <Form className="lobby-form" onSubmit={(e) => handleSubmit(e)}>
-      <h3>Host a game</h3>
-      <Form.Group controlId="name">
-        <Form.Label>Your name</Form.Label>
-        <Form.Control
-          value={name}
-          onChange={(e) => {
-            setError('');
-            setName(e.target.value);
-          }}
-        />
-      </Form.Group>
-
-      <div className="error-message">{error}</div>
-      <button type="submit" disabled={loading}>
-        {loading ? 'Creating...' : 'Host'}
-      </button>
-      <div className="switcher">
-        Joining a game?{' '}
-        <button
-          className="inline"
-          onClick={() => {
-            setError('');
-            setJoinMode(true);
-          }}
-        >
-          Enter room
-        </button>
-      </div>
-    </Form>
-  );
-
-  const touts = (
-    <div className="touts">
-      <div>
-        <h4>Simple multiplayer buzzer system</h4>
-        <p>Host a room and invite up to 200 people to join</p>
-      </div>
-      <div>
-        <h4>Join on any device</h4>
-        <p>
-          Use your computer, smartphone, or tablet to join and start buzzing
-        </p>
-      </div>
-      <div>
-        <h4>Free to use</h4>
-        <p>
-          Perfect for online quiz bowl, trivia night, or a classroom activity
-        </p>
-      </div>
-    </div>
-  );
 
   return (
     <main id="lobby">
-      <section className="primary d-none d-md-flex">
-        <div id="lobby-left">
-          <div>
-            <Header />
-            <section className="container-half">{touts}</section>
+      <Header />
+      <div className="lobby-card">
+        <h2 className="lobby-title">
+          {joinMode ? 'הצטרף למשחק' : 'צור חדר חדש'}
+        </h2>
+        <form className="lobby-form" onSubmit={handleSubmit}>
+          {joinMode && (
+            <div className="lobby-field">
+              <label htmlFor="room-code">קוד חדר</label>
+              <input
+                id="room-code"
+                type="text"
+                value={room}
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="characters"
+                spellCheck="false"
+                placeholder="הכנס קוד בן 6 תווים"
+                onChange={(e) => {
+                  setError('');
+                  setRoom(e.target.value);
+                }}
+              />
+            </div>
+          )}
+          <div className="lobby-field">
+            <label htmlFor="team-name">שם הקבוצה</label>
+            <input
+              id="team-name"
+              type="text"
+              value={name}
+              placeholder="שם הקבוצה שלך"
+              onChange={(e) => {
+                setError('');
+                setName(e.target.value);
+              }}
+            />
           </div>
-          <section className="container-half">
-            <FooterSimple />
-          </section>
-        </div>
-        <div id="lobby-right">
-          <section className="container-half">{form}</section>
-        </div>
-      </section>
-      <section className="primary d-block d-md-none">
-        <Header />
-        <Container className="container-mobile">{form}</Container>
-        <div className="divider" />
-        <Container className="container-mobile">{touts}</Container>
-      </section>
-      <Footer mobileOnly />
+          <div className="lobby-error">{error}</div>
+          <button type="submit" className="lobby-submit" disabled={loading}>
+            {loading
+              ? joinMode
+                ? 'מצטרף...'
+                : 'יוצר...'
+              : joinMode
+              ? 'הצטרף'
+              : 'צור חדר'}
+          </button>
+          <div className="lobby-switcher">
+            {joinMode ? (
+              <>
+                מארח משחק ?{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setError('');
+                    setJoinMode(false);
+                  }}
+                >
+                  צור חדר
+                </button>
+              </>
+            ) : (
+              <>
+                מצטרף למשחק ?{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setError('');
+                    setJoinMode(true);
+                  }}
+                >
+                  הצטרף
+                </button>
+              </>
+            )}
+          </div>
+        </form>
+      </div>
+      <Footer />
     </main>
   );
 }

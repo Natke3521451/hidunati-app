@@ -1,40 +1,19 @@
 import React from 'react';
-import { Container } from 'react-bootstrap';
+
+const TICKER_TEXT =
+  'החידונתי - כמה החידה היא חידה ? עברך  •  החידונתי - כמה החידה היא חידה ? עברך  •  החידונתי - כמה החידה היא חידה ? עברך';
 
 export function FooterSimple() {
-  return (
-    <div id="footer-simple">
-      Built on{' '}
-      <a
-        target="_blank"
-        rel="noopener noreferrer"
-        href="https://github.com/wsun/multibuzzer"
-      >
-        open source
-      </a>
-    </div>
-  );
+  return null;
 }
 
-/**
- * Footer component
- * @param {bool} mobileOnly - only display on mobile devices, <768 px
- */
-export default function Footer({ mobileOnly = false }) {
+export default function Footer() {
   return (
-    <footer className={mobileOnly ? 'd-block d-md-none' : null}>
-      <Container>
-        <div>
-          Built on{' '}
-          <a
-            target="_blank"
-            rel="noopener noreferrer"
-            href="https://github.com/wsun/multibuzzer"
-          >
-            open source
-          </a>
-        </div>
-      </Container>
-    </footer>
+    <div className="ticker-bar">
+      <div className="ticker-label">החידונתי</div>
+      <div className="ticker-track">
+        <span className="ticker-text">{TICKER_TEXT}</span>
+      </div>
+    </div>
   );
 }
