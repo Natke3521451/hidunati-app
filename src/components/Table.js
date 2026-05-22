@@ -66,8 +66,9 @@ export default function Table(game) {
   const players = !game.gameMetadata
     ? []
     : game.gameMetadata.filter((p) => p.name).map((p) => ({ ...p, id: String(p.id) }));
-  const firstPlayer =
-    get(sortBy(players, (p) => parseInt(p.id, 10)).filter((p) => p.connected), '0') || null;
+
+  // Host = lowest playerID among joined players — never filter by connected to prevent flipping
+  const firstPlayer = get(sortBy(players, (p) => parseInt(p.id, 10)), '0') || null;
   const isHost = get(firstPlayer, 'id') === game.playerID;
 
   async function leaveGame() {
@@ -231,6 +232,9 @@ export default function Table(game) {
           <div className="room-row">
             <img src={`${P}/room-icon.png`} alt="חדר" className="room-icon" />
             <span className="room-code-text">{game.gameID}</span>
+            <button className="btn-exit" onClick={leaveGame} title="עזוב משחק">
+              <img src={`${P}/btn-exit.png`} alt="יציאה" />
+            </button>
           </div>
           {buzzerElement}
           {playerLists}
