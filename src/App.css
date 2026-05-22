@@ -534,6 +534,29 @@
 .host-btn:active { opacity: 0.75; }
 .host-btn-on { background: #0d47a1; }
 
+.host-btn-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.host-btn-wrap .host-btn {
+  width: 100%;
+}
+
+.sound-on-icon {
+  font-size: 1.5rem;
+  color: #1565C0;
+  animation: sound-pulse 1.1s ease-in-out infinite;
+}
+
+@keyframes sound-pulse {
+  0%, 100% { opacity: 1;   transform: scale(1);    }
+  50%       { opacity: 0.5; transform: scale(0.85); }
+}
+
 .host-btn img {
   width: 26px;
   height: 26px;

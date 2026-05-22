@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { get, some, values, sortBy, orderBy, isEmpty, round } from 'lodash';
 import { Howl } from 'howler';
 import { AiOutlineDisconnect } from 'react-icons/ai';
+import { MdVolumeUp } from 'react-icons/md';
 import Footer from '../components/Footer';
 import { leaveRoom } from '../lib/endpoints';
 
@@ -180,10 +181,13 @@ export default function Table(game) {
             </div>
 
             <div className="host-ctrl-row">
-              <button className={`host-btn${sound ? ' host-btn-on' : ''}`} onClick={() => setSound(!sound)}>
-                <img src={`${P}/btn-voice.png`} alt="" />
-                <span>הפעלת קול</span>
-              </button>
+              <div className="host-btn-wrap">
+                {sound && <MdVolumeUp className="sound-on-icon" />}
+                <button className={`host-btn${sound ? ' host-btn-on' : ''}`} onClick={() => setSound(!sound)}>
+                  <img src={`${P}/btn-voice.png`} alt="" />
+                  <span>הפעלת קול</span>
+                </button>
+              </div>
               <button className="host-btn" onClick={leaveGame}>
                 <img src={`${P}/btn-exit.png`} alt="" />
                 <span>עזיבת משחק</span>
