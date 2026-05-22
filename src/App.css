@@ -250,7 +250,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 8px 12px;
+  padding: 4px 12px;
   max-width: 500px;
   width: 100%;
   margin: 0 auto;
@@ -319,7 +319,7 @@
 .buzzer-wrap {
   display: flex;
   justify-content: center;
-  margin: 6px 0;
+  margin: 4px 0;
 }
 
 .buzzer-btn {
@@ -337,8 +337,8 @@
 .buzzer-btn:disabled { cursor: default; }
 
 .buzzer-btn img {
-  width: 230px;
-  height: 230px;
+  width: 200px;
+  height: 200px;
   object-fit: contain;
   display: block;
   filter: drop-shadow(0 6px 18px rgba(0,0,0,0.35));
@@ -349,8 +349,15 @@
   filter: drop-shadow(0 4px 10px rgba(0,0,0,0.2));
 }
 
+/* Smaller buzzer on host view */
+.host-buzzer .buzzer-btn img {
+  width: 150px;
+  height: 150px;
+}
+
 @media (max-width: 380px) {
-  .buzzer-btn img { width: 180px; height: 180px; }
+  .buzzer-btn img { width: 160px; height: 160px; }
+  .host-buzzer .buzzer-btn img { width: 130px; height: 130px; }
 }
 
 /* Host control buttons row */
@@ -358,8 +365,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 24px;
-  margin: 10px 0 6px;
+  gap: 20px;
+  margin: 6px 0 4px;
   width: 100%;
 }
 
@@ -374,8 +381,8 @@
 }
 
 .ctrl-btn img {
-  width: 130px;
-  height: 130px;
+  width: 90px;
+  height: 90px;
   object-fit: contain;
   display: block;
   filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
@@ -388,7 +395,7 @@
 .queue-section {
   width: 100%;
   max-width: 400px;
-  margin-top: 14px;
+  margin-top: 8px;
 }
 
 .queue-label {

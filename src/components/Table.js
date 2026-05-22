@@ -194,7 +194,7 @@ export default function Table(game) {
                 </button>
               </div>
 
-              {buzzerElement}
+              <div className="host-buzzer">{buzzerElement}</div>
 
               {/* Reset + BuzzLock */}
               <div className="host-controls">
