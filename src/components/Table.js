@@ -171,7 +171,7 @@ export default function Table(game) {
         </div>
 
         <main id="game">
-          <div className="game-body host-game-body">
+          <div className="game-body">
             {!game.isConnected && (
               <p className="connection-warning">מנותק - מנסה להתחבר מחדש...</p>
             )}

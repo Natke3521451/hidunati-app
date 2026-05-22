@@ -361,16 +361,10 @@
   text-align: right;
 }
 
-/* Host buzzer +30% vs player buzzer */
+/* Host buzzer — larger than player, responsive */
 .host-buzzer-wrap .buzzer-btn img {
-  width: min(312px, 86vw);
-  height: min(312px, 86vw);
-}
-
-/* Center host content vertically */
-.host-game-body {
-  flex: 1;
-  justify-content: center;
+  width: min(300px, 78vw);
+  height: min(300px, 78vw);
 }
 
 /* ─── Host Screen (S3) ───────────────────────────────── */
@@ -487,6 +481,7 @@
   .host-nk-logo        { height: 20px; }
   .host-room-label,
   .host-room-code      { font-size: 1.4rem; }
-  .buzzer-btn img      { width: 192px; height: 192px; }
+  .buzzer-btn img                    { width: 192px; height: 192px; }
+  .host-buzzer-wrap .buzzer-btn img  { width: min(220px, 60vw); height: min(220px, 60vw); }
   .queue-section       { margin-top: 5px; }
 }
