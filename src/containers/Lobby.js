@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useLocation, useHistory } from 'react-router-dom';
 import { get } from 'lodash';
 import { joinRoom, getRoom, createRoom } from '../lib/endpoints';
-import Header from '../components/Header';
 import Footer from '../components/Footer';
+
+const P = process.env.PUBLIC_URL;
 
 const ERR = {
   emptyCode: 'אנא הכנס קוד חדר',
@@ -82,7 +83,16 @@ export default function Lobby({ setAuth }) {
 
   return (
     <main id="lobby">
-      <Header />
+      {/* Header: logos */}
+      <div className="app-header">
+        <img src={`${P}/hidunati-logo.png`} alt="החידונתי" className="header-logo-hidunati" />
+        <img src={`${P}/nk-logo.png`} alt="NK" className="header-logo-nk" />
+      </div>
+
+      {/* Tent image centered */}
+      <img src={`${P}/tent.png`} alt="אוהל" className="lobby-tent" />
+
+      {/* Form card */}
       <div className="lobby-card">
         <h2 className="lobby-title">
           {joinMode ? 'הצטרף למשחק' : 'צור חדר חדש'}
@@ -100,10 +110,7 @@ export default function Lobby({ setAuth }) {
                 autoCapitalize="characters"
                 spellCheck="false"
                 placeholder="הכנס קוד בן 6 תווים"
-                onChange={(e) => {
-                  setError('');
-                  setRoom(e.target.value);
-                }}
+                onChange={(e) => { setError(''); setRoom(e.target.value); }}
               />
             </div>
           )}
@@ -114,53 +121,27 @@ export default function Lobby({ setAuth }) {
               type="text"
               value={name}
               placeholder="שם הקבוצה שלך"
-              onChange={(e) => {
-                setError('');
-                setName(e.target.value);
-              }}
+              onChange={(e) => { setError(''); setName(e.target.value); }}
             />
           </div>
           <div className="lobby-error">{error}</div>
           <button type="submit" className="lobby-submit" disabled={loading}>
-            {loading
-              ? joinMode
-                ? 'מצטרף...'
-                : 'יוצר...'
-              : joinMode
-              ? 'הצטרף'
-              : 'צור חדר'}
+            {loading ? (joinMode ? 'מצטרף...' : 'יוצר...') : (joinMode ? 'הצטרף' : 'צור חדר')}
           </button>
           <div className="lobby-switcher">
             {joinMode ? (
-              <>
-                מארח משחק ?{' '}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setError('');
-                    setJoinMode(false);
-                  }}
-                >
-                  צור חדר
-                </button>
+              <>מארח משחק ?{' '}
+                <button type="button" onClick={() => { setError(''); setJoinMode(false); }}>צור חדר</button>
               </>
             ) : (
-              <>
-                מצטרף למשחק ?{' '}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setError('');
-                    setJoinMode(true);
-                  }}
-                >
-                  הצטרף
-                </button>
+              <>מצטרף למשחק ?{' '}
+                <button type="button" onClick={() => { setError(''); setJoinMode(true); }}>הצטרף</button>
               </>
             )}
           </div>
         </form>
       </div>
+
       <Footer />
     </main>
   );

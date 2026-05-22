@@ -2,39 +2,28 @@ import React, { useState, useEffect, useRef } from 'react';
 import { get, some, values, sortBy, orderBy, isEmpty, round } from 'lodash';
 import { Howl } from 'howler';
 import { AiOutlineDisconnect } from 'react-icons/ai';
-import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { leaveRoom } from '../lib/endpoints';
 
-const BUZZER_ACTIVE = `${process.env.PUBLIC_URL}/buzzer-active.png`;
-const BUZZER_LOCKED = `${process.env.PUBLIC_URL}/buzzer-locked.png`;
-const BTN_SOUND     = `${process.env.PUBLIC_URL}/btn-sound.png`;
-const BTN_STOP      = `${process.env.PUBLIC_URL}/btn-stop.png`;
-const BTN_LOCK      = `${process.env.PUBLIC_URL}/btn-lock.png`;
-const BTN_RESET     = `${process.env.PUBLIC_URL}/btn-reset.png`;
+const P = process.env.PUBLIC_URL;
 
 export default function Table(game) {
-  const [loaded, setLoaded]       = useState(false);
-  const [buzzed, setBuzzer]       = useState(some(game.G.queue, (o) => o.id === game.playerID));
-  const [lastBuzz, setLastBuzz]   = useState(null);
-  const [sound, setSound]         = useState(false);
+  const [loaded, setLoaded]           = useState(false);
+  const [buzzed, setBuzzer]           = useState(some(game.G.queue, (o) => o.id === game.playerID));
+  const [lastBuzz, setLastBuzz]       = useState(null);
+  const [sound, setSound]             = useState(false);
   const [soundPlayed, setSoundPlayed] = useState(false);
-  const buzzButton  = useRef(null);
-  const queueRef    = useRef(null);
+  const buzzButton = useRef(null);
+  const queueRef   = useRef(null);
 
   const buzzSound = new Howl({
-    src: [
-      `${process.env.PUBLIC_URL}/shortBuzz.webm`,
-      `${process.env.PUBLIC_URL}/shortBuzz.mp3`,
-    ],
+    src: [`${P}/shortBuzz.webm`, `${P}/shortBuzz.mp3`],
     volume: 0.5,
     rate: 1.5,
   });
 
   const playSound = () => {
-    if (sound && !soundPlayed) {
-      buzzSound.play();
-      setSoundPlayed(true);
-    }
+    if (sound && !soundPlayed) { buzzSound.play(); setSoundPlayed(true); }
   };
 
   useEffect(() => {
@@ -47,11 +36,8 @@ export default function Table(game) {
         setBuzzer(false);
       }
     }
-    if (isEmpty(game.G.queue)) {
-      setSoundPlayed(false);
-    } else if (loaded) {
-      playSound();
-    }
+    if (isEmpty(game.G.queue)) { setSoundPlayed(false); }
+    else if (loaded) { playSound(); }
     if (!loaded) setLoaded(true);
     queueRef.current = game.G.queue;
   }, [game.G.queue]); // eslint-disable-line
@@ -65,7 +51,6 @@ export default function Table(game) {
     }
   };
 
-  // spacebar triggers buzz
   useEffect(() => {
     const onKeydown = (e) => {
       if (e.keyCode === 32 && !e.repeat) {
@@ -77,7 +62,7 @@ export default function Table(game) {
     return () => window.removeEventListener('keydown', onKeydown);
   }, []);
 
-  // resolve players & host
+  // Players & host logic
   const players = !game.gameMetadata
     ? []
     : game.gameMetadata.filter((p) => p.name).map((p) => ({ ...p, id: String(p.id) }));
@@ -85,12 +70,14 @@ export default function Table(game) {
     get(sortBy(players, (p) => parseInt(p.id, 10)).filter((p) => p.connected), '0') || null;
   const isHost = get(firstPlayer, 'id') === game.playerID;
 
-  // leave game handler
-  function leaveGame() {
+  async function leaveGame() {
+    try {
+      const { roomID, playerID, credentials } = game.headerData;
+      await leaveRoom(roomID, playerID, credentials);
+    } catch (e) { /* ignore */ }
     game.headerData.setAuth({ playerID: null, credentials: null, roomID: null });
   }
 
-  // queues
   const queue = sortBy(values(game.G.queue), ['timestamp']);
   const buzzedPlayers = queue
     .map((p) => {
@@ -108,7 +95,7 @@ export default function Table(game) {
   const timeDisplay = (delta) =>
     delta > 1000 ? `+${round(delta / 1000, 2)} שנ'` : `+${delta} ms`;
 
-  const buzzerImg = game.G.locked ? BUZZER_LOCKED : BUZZER_ACTIVE;
+  const buzzerImg = game.G.locked ? `${P}/buzzoff.png` : `${P}/buzz.png`;
   const buzzerDisabled = buzzed || game.G.locked;
 
   const buzzerElement = (
@@ -128,12 +115,13 @@ export default function Table(game) {
   const playerLists = (
     <>
       <div className="queue-section">
-        <h3>סדר לחיצה</h3>
+        <img src={`${P}/seder.png`} alt="סדר לחיצה" className="queue-label" />
         <ul>
           {buzzedPlayers.map(({ id, name, timestamp, connected }, i) => (
             <li key={id}>
               <div
-                className={`player-sign${isHost ? ' resettable' : ''}`}
+                className={`player-banner${isHost ? ' resettable' : ''}`}
+                style={{ backgroundImage: `url(${P}/banner-name.png)` }}
                 onClick={() => { if (isHost) game.moves.resetBuzzer(id); }}
               >
                 <span className={`player-name${!connected ? ' dim' : ''}`}>
@@ -150,12 +138,13 @@ export default function Table(game) {
           ))}
         </ul>
       </div>
+
       <div className="queue-section">
-        <h3>שחקנים</h3>
+        <img src={`${P}/players.png`} alt="שחקנים" className="queue-label" />
         <ul>
           {activePlayers.map(({ id, name, connected }) => (
             <li key={id}>
-              <div className="player-sign">
+              <div className="player-banner" style={{ backgroundImage: `url(${P}/banner-name.png)` }}>
                 <span className={`player-name${!connected ? ' dim' : ''}`}>
                   {name}
                   {!connected && <AiOutlineDisconnect className="disconnected-icon" />}
@@ -170,11 +159,23 @@ export default function Table(game) {
 
   return (
     <div>
-      <Header
-        auth={game.headerData}
-        clearAuth={leaveGame}
-        gameID={game.gameID}
-      />
+      {/* ── Header ─────────────────────────────────── */}
+      <div className="app-header">
+        <img src={`${P}/hidunati-logo.png`} alt="החידונתי" className="header-logo-hidunati" />
+        {isHost && (
+          <div className="header-center">
+            <button
+              className={`header-btn-voice${sound ? ' active' : ''}`}
+              onClick={() => setSound(!sound)}
+              title="הפעלת קול"
+            >
+              <img src={`${P}/btn-voice.png`} alt="הפעלת קול" style={{ height: '100%', width: 'auto' }} />
+            </button>
+          </div>
+        )}
+        <img src={`${P}/nk-logo.png`} alt="NK" className="header-logo-nk" />
+      </div>
+
       <main id="game">
         <div className="game-body">
           {!game.isConnected && (
@@ -182,51 +183,36 @@ export default function Table(game) {
           )}
 
           {isHost ? (
-            /* ── S3: Host View ─────────────────────────── */
+            /* ── S3: Host View ─────────────────────── */
             <>
-              <div className="host-top-row">
-                <button
-                  className={`ctrl-btn${sound ? ' active-sound' : ''}`}
-                  onClick={() => setSound(!sound)}
-                  title="הפעלת קול"
-                >
-                  <img src={BTN_SOUND} alt="הפעלת קול" />
-                </button>
-                <div className="room-row" style={{ flex: 1, justifyContent: 'center' }}>
-                  {/* room shown in header already */}
-                </div>
-                <button
-                  className="ctrl-btn"
-                  onClick={leaveGame}
-                  title="עצירת משחק"
-                >
-                  <img src={BTN_STOP} alt="עצירת משחק" />
+              {/* Room code + exit */}
+              <div className="room-row-host">
+                <img src={`${P}/room-icon.png`} alt="חדר" className="room-icon" />
+                <span className="room-code-text">{game.gameID}</span>
+                <button className="btn-exit" onClick={leaveGame} title="עזוב משחק">
+                  <img src={`${P}/btn-exit.png`} alt="יציאה" />
                 </button>
               </div>
 
               {buzzerElement}
 
-              <div className="host-bottom-row">
-                <button
-                  className="ctrl-btn"
-                  onClick={() => game.moves.toggleLock()}
-                  title={game.G.locked ? 'פתח באזר' : 'נעל באזר'}
-                >
-                  <img src={BTN_LOCK} alt="נעילת באזר" />
+              {/* Reset + BuzzLock */}
+              <div className="host-controls">
+                <button className="ctrl-btn" onClick={() => game.moves.resetBuzzers()} title="איפוס כללי">
+                  <img src={`${P}/btn-reset.png`} alt="איפוס כללי" />
                 </button>
-                <div className="spacer" />
-                <button
-                  className="ctrl-btn"
-                  onClick={() => game.moves.resetBuzzers()}
-                  title="איפוס כללי"
-                >
-                  <img src={BTN_RESET} alt="איפוס כללי" />
+                <button className="ctrl-btn" onClick={() => game.moves.toggleLock()} title={game.G.locked ? 'פתח באזר' : 'נעל באזר'}>
+                  <img src={`${P}/btn-lock.png`} alt="נעילת באזר" />
                 </button>
               </div>
             </>
           ) : (
-            /* ── S2: Player View ───────────────────────── */
+            /* ── S2: Player View ───────────────────── */
             <>
+              <div className="room-row">
+                <img src={`${P}/room-icon.png`} alt="חדר" className="room-icon" />
+                <span className="room-code-text">{game.gameID}</span>
+              </div>
               {buzzerElement}
             </>
           )}
@@ -234,6 +220,7 @@ export default function Table(game) {
           {playerLists}
         </div>
       </main>
+
       <Footer />
     </div>
   );

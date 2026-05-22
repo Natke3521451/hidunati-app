@@ -18,8 +18,12 @@ function App() {
     roomID: null,
   });
 
+  const bgStyle = {
+    backgroundImage: `url(${process.env.PUBLIC_URL}/background.png)`,
+  };
+
   return (
-    <div className="App">
+    <div className="App" style={bgStyle}>
       <Router>
         <Switch>
           <Route

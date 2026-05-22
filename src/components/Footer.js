@@ -1,11 +1,9 @@
 import React from 'react';
 
 const TICKER_TEXT =
-  'החידונתי - כמה החידה היא חידה ? עברך  •  החידונתי - כמה החידה היא חידה ? עברך  •  החידונתי - כמה החידה היא חידה ? עברך';
+  'החידונתי - כמה היחידה היא חידה עבורך ?  •  החידונתי - כמה היחידה היא חידה עבורך ?  •  החידונתי - כמה היחידה היא חידה עבורך ?';
 
-export function FooterSimple() {
-  return null;
-}
+export function FooterSimple() { return null; }
 
 export default function Footer() {
   return (
