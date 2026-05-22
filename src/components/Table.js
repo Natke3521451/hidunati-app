@@ -171,7 +171,7 @@ export default function Table(game) {
         </div>
 
         <main id="game">
-          <div className="game-body">
+          <div className="game-body host-game-body">
             {!game.isConnected && (
               <p className="connection-warning">מנותק - מנסה להתחבר מחדש...</p>
             )}
@@ -195,7 +195,7 @@ export default function Table(game) {
               </button>
             </div>
 
-            {buzzerElement}
+            <div className="host-buzzer-wrap">{buzzerElement}</div>
 
             <div className="host-ctrl-row">
               <button className="host-btn" onClick={() => game.moves.toggleLock()}>
@@ -232,9 +232,7 @@ export default function Table(game) {
           <div className="room-row">
             <img src={`${P}/room-icon.png`} alt="חדר" className="room-icon" />
             <span className="room-code-text">{game.gameID}</span>
-            <button className="btn-exit" onClick={leaveGame} title="עזוב משחק">
-              <img src={`${P}/btn-exit.png`} alt="יציאה" />
-            </button>
+            <button className="player-exit-text" onClick={leaveGame}>יציאה</button>
           </div>
           {buzzerElement}
           {playerLists}
