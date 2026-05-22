@@ -446,15 +446,117 @@
   font-size: 1rem;
 }
 
+/* ─── Host Screen (S3) ───────────────────────────────── */
+.host-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.host-header-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 8px 10px 4px;
+  gap: 2px;
+}
+
+.host-nk-logo {
+  height: 26px;
+  width: auto;
+}
+
+.host-hidunati-logo {
+  height: 52px;
+  width: auto;
+}
+
+.host-tent {
+  height: 110px;
+  width: auto;
+  display: block;
+}
+
+.host-room-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  width: 100%;
+  padding: 2px 14px 6px;
+}
+
+.host-room-label {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--text-dark);
+}
+
+.host-room-code {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--text-dark);
+  letter-spacing: 3px;
+  background: rgba(255,255,255,0.7);
+  padding: 2px 12px;
+  border-radius: 6px;
+  border: 1.5px solid var(--input-border);
+}
+
+.host-ctrl-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  padding: 0 12px;
+  margin: 5px 0;
+}
+
+.host-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+  background: #1565C0;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 10px;
+  font-family: 'Heebo', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+
+.host-btn:active { opacity: 0.75; }
+.host-btn-on { background: #0d47a1; }
+
+.host-btn img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.section-label {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--text-dark);
+  margin: 0 0 5px;
+  text-align: right;
+}
+
 /* ─── iPhone compact (≤ 700px tall = SE / older) ─────── */
 @media (max-height: 700px) {
   .app-header { padding: 4px 12px; }
   .header-logo-hidunati, .header-logo-nk { height: 36px; }
-  .header-btn-voice { height: 38px; }
-  .btn-exit { height: 38px; }
   .room-code-text { font-size: 1.2rem; }
-  .host-buzzer .buzzer-btn img { width: 100px; height: 100px; }
-  .ctrl-btn img { width: 68px; height: 68px; }
+  .host-tent { height: 80px; }
+  .host-hidunati-logo { height: 40px; }
+  .host-room-label, .host-room-code { font-size: 1.4rem; }
+  .buzzer-btn img { width: 160px; height: 160px; }
   .queue-section { margin-top: 5px; }
-  .queue-label { height: 24px; }
 }

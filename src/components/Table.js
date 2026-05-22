@@ -62,7 +62,6 @@ export default function Table(game) {
     return () => window.removeEventListener('keydown', onKeydown);
   }, []);
 
-  // Players & host logic
   const players = !game.gameMetadata
     ? []
     : game.gameMetadata.filter((p) => p.name).map((p) => ({ ...p, id: String(p.id) }));
@@ -115,7 +114,7 @@ export default function Table(game) {
   const playerLists = (
     <>
       <div className="queue-section">
-        <img src={`${P}/seder.png`} alt="סדר לחיצה" className="queue-label" />
+        <p className="section-label">סדר לחיצה</p>
         <ul>
           {buzzedPlayers.map(({ id, name, timestamp, connected }, i) => (
             <li key={id}>
@@ -140,7 +139,7 @@ export default function Table(game) {
       </div>
 
       <div className="queue-section">
-        <img src={`${P}/players.png`} alt="שחקנים" className="queue-label" />
+        <p className="section-label">שחקנים</p>
         <ul>
           {activePlayers.map(({ id, name, connected }) => (
             <li key={id}>
@@ -157,23 +156,67 @@ export default function Table(game) {
     </>
   );
 
+  /* ── Host View (S3) ─────────────────────────────────── */
+  if (isHost) {
+    return (
+      <div>
+        <div className="host-header">
+          <div className="host-header-brand">
+            <img src={`${P}/nk-logo.png`}        alt="NK"         className="host-nk-logo" />
+            <img src={`${P}/hidunati-logo.png`}   alt="החידונתי"   className="host-hidunati-logo" />
+          </div>
+          <img src={`${P}/tent.png`} alt="" className="host-tent" />
+        </div>
+
+        <main id="game">
+          <div className="game-body">
+            {!game.isConnected && (
+              <p className="connection-warning">מנותק - מנסה להתחבר מחדש...</p>
+            )}
+
+            <div className="host-room-row">
+              <span className="host-room-code">{game.gameID}</span>
+              <span className="host-room-label">:חדר</span>
+            </div>
+
+            <div className="host-ctrl-row">
+              <button className={`host-btn${sound ? ' host-btn-on' : ''}`} onClick={() => setSound(!sound)}>
+                <img src={`${P}/btn-voice.png`} alt="" />
+                <span>הפעלת קול</span>
+              </button>
+              <button className="host-btn" onClick={leaveGame}>
+                <img src={`${P}/btn-exit.png`} alt="" />
+                <span>עזיבת משחק</span>
+              </button>
+            </div>
+
+            {buzzerElement}
+
+            <div className="host-ctrl-row">
+              <button className="host-btn" onClick={() => game.moves.toggleLock()}>
+                <img src={`${P}/btn-lock.png`} alt="" />
+                <span>נעילת באזר</span>
+              </button>
+              <button className="host-btn" onClick={() => game.moves.resetBuzzers()}>
+                <img src={`${P}/btn-reset.png`} alt="" />
+                <span>איפוס כללי</span>
+              </button>
+            </div>
+
+            {playerLists}
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  /* ── Player View (S2) ───────────────────────────────── */
   return (
     <div>
-      {/* ── Header ─────────────────────────────────── */}
       <div className="app-header">
         <img src={`${P}/hidunati-logo.png`} alt="החידונתי" className="header-logo-hidunati" />
-        {isHost && (
-          <div className="header-center">
-            <button
-              className={`header-btn-voice${sound ? ' active' : ''}`}
-              onClick={() => setSound(!sound)}
-              title="הפעלת קול"
-            >
-              <img src={`${P}/btn-voice.png`} alt="הפעלת קול" style={{ height: '100%', width: 'auto' }} />
-            </button>
-          </div>
-        )}
-        <img src={`${P}/nk-logo.png`} alt="NK" className="header-logo-nk" />
+        <img src={`${P}/nk-logo.png`}       alt="NK"       className="header-logo-nk" />
       </div>
 
       <main id="game">
@@ -181,46 +224,14 @@ export default function Table(game) {
           {!game.isConnected && (
             <p className="connection-warning">מנותק - מנסה להתחבר מחדש...</p>
           )}
-
-          {isHost ? (
-            /* ── S3: Host View ─────────────────────── */
-            <>
-              {/* Room code + exit */}
-              <div className="room-row-host">
-                <img src={`${P}/room-icon.png`} alt="חדר" className="room-icon" />
-                <span className="room-code-text">{game.gameID}</span>
-                <button className="btn-exit" onClick={leaveGame} title="עזוב משחק">
-                  <img src={`${P}/btn-exit.png`} alt="יציאה" />
-                </button>
-              </div>
-
-              <div className="host-buzzer">{buzzerElement}</div>
-
-              {/* Reset + BuzzLock */}
-              <div className="host-controls">
-                <button className="ctrl-btn" onClick={() => game.moves.resetBuzzers()} title="איפוס כללי">
-                  <img src={`${P}/btn-reset.png`} alt="איפוס כללי" />
-                </button>
-                <button className="ctrl-btn" onClick={() => game.moves.toggleLock()} title={game.G.locked ? 'פתח באזר' : 'נעל באזר'}>
-                  <img src={`${P}/btn-lock.png`} alt="נעילת באזר" />
-                </button>
-              </div>
-            </>
-          ) : (
-            /* ── S2: Player View ───────────────────── */
-            <>
-              <div className="room-row">
-                <img src={`${P}/room-icon.png`} alt="חדר" className="room-icon" />
-                <span className="room-code-text">{game.gameID}</span>
-              </div>
-              {buzzerElement}
-            </>
-          )}
-
+          <div className="room-row">
+            <img src={`${P}/room-icon.png`} alt="חדר" className="room-icon" />
+            <span className="room-code-text">{game.gameID}</span>
+          </div>
+          {buzzerElement}
           {playerLists}
         </div>
       </main>
-
       <Footer />
     </div>
   );
